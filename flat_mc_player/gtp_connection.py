@@ -324,15 +324,15 @@ class GtpConnection():
             self.respond("pass")
             return
         move=None
-        try:
-            signal.alarm(int(self.timelimit))
-            self.sboard = self.board.copy()
-            move = self.go_engine.get_move(self.board, color)
-            self.board=self.sboard
-            signal.alarm(0)
-        except Exception as e:
-            move=self.go_engine.best_move
-
+        rmoves = self.board.get_pattern_moves()
+        if rmoves != None:
+            if len(rmoves[1]) != 0:
+                move = rmoves[1][0]
+        else:
+                self.sboard = self.board.copy()
+                tree = MCTS()
+                move = tree.get_move(self.board, color)
+                self.board=self.sboard
         if move == PASS:
             self.respond("pass")
             return

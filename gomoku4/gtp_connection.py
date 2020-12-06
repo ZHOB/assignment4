@@ -2,8 +2,8 @@
 gtp_connection.py
 Module for playing games of Go using GoTextProtocol
 
-Parts of this code were originally based on the gtp module
-in the Deep-Go project by Isaac Henrion and Amos Storkey
+Parts of this code were originally based on the gtp module 
+in the Deep-Go project by Isaac Henrion and Amos Storkey 
 at the University of Edinburgh.
 """
 import traceback
@@ -13,8 +13,6 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, PASS, \
 import numpy as np
 import re
 import signal
-from mcts import MCTS
-
 
 class GtpConnection():
 
@@ -26,7 +24,7 @@ class GtpConnection():
         ----------
         go_engine:
             a program that can reply to a set of GTP commandsbelow
-        board:
+        board: 
             Represents the current board state.
         """
         self._debug_mode = debug_mode
@@ -57,13 +55,13 @@ class GtpConnection():
             "timelimit": self.timelimit_cmd,
             "solve": self.solve_cmd,
             "list_solve_point": self.list_solve_point_cmd, # below is added for Gomoku3
-            "policy": self.set_playout_policy,
+            "policy": self.set_playout_policy, 
             "policy_moves": self.display_pattern_moves
         }
-        self.timelimit = 57
+        self.timelimit=2
 
         # used for argument checking
-        # values: (required number of arguments,
+        # values: (required number of arguments, 
         #          error message on argnum failure)
         self.argmap = {
             "boardsize": (1, 'Usage: boardsize INT'),
@@ -74,7 +72,7 @@ class GtpConnection():
             "legal_moves": (1, 'Usage: legal_moves {w,b}'),
             "policy":(1, 'Usage: set playout policy {random, rule_based}')
         }
-
+    
     def set_playout_policy(self, args):
         playout_policy=args[0]
         self.go_engine.set_playout_policy(playout_policy)
@@ -102,14 +100,14 @@ class GtpConnection():
         self.respond(moveType+' '+sorted_moves)
 
     def write(self, data):
-        stdout.write(data)
+        stdout.write(data) 
 
     def flush(self):
         stdout.flush()
 
     def start_connection(self):
         """
-        Start a GTP connection.
+        Start a GTP connection. 
         This function continuously monitors standard input for commands.
         """
         line = stdin.readline()
@@ -182,7 +180,7 @@ class GtpConnection():
 
     def board2d(self):
         return str(GoBoardUtil.get_twoD_board(self.board))
-
+        
     def protocol_version_cmd(self, args):
         """ Return the GTP protocol version being used (always 2) """
         self.respond('2')
@@ -300,9 +298,9 @@ class GtpConnection():
             if move != "NoMove":
                 if move == None:
                     self.respond('{} {}'.format(winner, self.board._point_to_coord(move)))
-                    return
+                    return 
                 self.respond('{} {}'.format(winner, format_point(point_to_coord(move, self.board.size))))
-                return
+                return 
             self.respond('{}'.format(winner))
         except Exception as e:
             self.respond('{}'.format(str(e)))
@@ -326,15 +324,15 @@ class GtpConnection():
             self.respond("pass")
             return
         move=None
-        rmoves = self.board.get_pattern_moves()
-        if rmoves != None:
-            if len(rmoves[1]) != 0:
-                move = rmoves[1][0]
-        else:
-                self.sboard = self.board.copy()
-                tree = MCTS()
-                move = tree.get_move(self.board, color)
-                self.board=self.sboard
+        try:
+            signal.alarm(int(self.timelimit))
+            self.sboard = self.board.copy()
+            move = self.go_engine.get_move(self.board, color)
+            self.board=self.sboard
+            signal.alarm(0)
+        except Exception as e:
+            move=self.go_engine.best_move
+
         if move == PASS:
             self.respond("pass")
             return
@@ -348,7 +346,7 @@ class GtpConnection():
 
     def gogui_rules_game_id_cmd(self, args):
         self.respond("Gomoku")
-
+    
     def gogui_rules_board_size_cmd(self, args):
         self.respond(str(self.board.size))
     """
@@ -377,11 +375,11 @@ class GtpConnection():
             gtp_moves.append(format_point(coords))
         sorted_moves = ' '.join(sorted(gtp_moves))
         self.respond(sorted_moves)
-
+    
     def gogui_rules_side_to_move_cmd(self, args):
         color = "black" if self.board.current_player == BLACK else "white"
         self.respond(color)
-
+    
     def gogui_rules_board_cmd(self, args):
         size = self.board.size
         str = ''
@@ -399,7 +397,7 @@ class GtpConnection():
                     assert False
             str += '\n'
         self.respond(str)
-
+    
     def gogui_rules_final_result_cmd(self, args):
         game_end, winner = self.board.check_game_end_gomoku()
         moves = self.board.get_empty_points()
@@ -427,7 +425,7 @@ class GtpConnection():
 
 def point_to_coord(point, boardsize):
     """
-    Transform point given as board array index
+    Transform point given as board array index 
     to (row, col) coordinate representation.
     Special case: PASS is not transformed
     """
@@ -448,8 +446,8 @@ def format_point(move):
     row, col = move
     if not 0 <= row < MAXSIZE or not 0 <= col < MAXSIZE:
         raise ValueError
-    return column_letters[col - 1]+ str(row)
-
+    return column_letters[col - 1]+ str(row) 
+    
 def move_to_coord(point_str, board_size):
     """
     Convert a string point_str representing a point, as specified by GTP,
@@ -479,6 +477,6 @@ def move_to_coord(point_str, board_size):
 
 def color_to_int(c):
     """convert character to the appropriate integer code"""
-    color_to_int = {"b": BLACK , "w": WHITE, "e": EMPTY,
+    color_to_int = {"b": BLACK , "w": WHITE, "e": EMPTY, 
                     "BORDER": BORDER}
-    return color_to_int[c]
+    return color_to_int[c] 
