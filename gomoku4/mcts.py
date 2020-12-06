@@ -1,8 +1,14 @@
 import numpy as np
 import random
-from board_util import GoBoardUtil, BLACK, WHITE, PASS
-from gtp_connection import point_to_coord, format_point
+from board_util import GoBoardUtil, BLACK, WHITE, PASS, EMPTY
 import time
+from sys import stdin, stdout, stderr
+A = 0
+def respond(response=''):
+    """ Send response to stdout """
+    stdout.write('= {}\n\n'.format(response))
+    stdout.flush()
+
 
 def uct_val(node, child, exploration, max_flag):
     if child._n_visits == 0:
@@ -40,12 +46,8 @@ class TreeNode(object):
         """
         Expands tree by creating new children.
         """
-        moves = board.get_pattern_moves()
-        if moves != None:
-            if len(rmoves[1]) != 0:
-                moves = rmoves[1]
-        else:
-            moves = board.get_empty_points()
+
+        moves = board.get_empty_points()
         for move in moves:
             if move not in self._children:
                 self._children[move] = TreeNode(self)
@@ -106,6 +108,7 @@ class MCTS(object):
         self._root = TreeNode(None)
         self.toplay = None
         self.exploration = 0.3
+        self.A = 0
     def _playout(self, board, color):
         """
         Run a single playout from the root to the given depth, getting a value at the leaf and
@@ -121,64 +124,58 @@ class MCTS(object):
         None
         """
         node = self._root
+        ow = color
         # This will be True olny once for the root
         if not node._expanded:
             node.expand(board, color)
         while not node.is_leaf():
             # Greedily select next move.
-            max_flag = color == self.toplay
+            max_flag = color == ow
             move, next_node = node.select(self.exploration, max_flag)
             if move != PASS:
-                assert board.is_legal(move, color)
+                assert board.board[move] == EMPTY
             if move == PASS:
                 move = None
             board.play_move_gomoku(move, color)
             color = GoBoardUtil.opponent(color)
             node = next_node
+
         assert node.is_leaf()
         if not node._expanded:
             node.expand(board, color)
 
         assert board.current_player == color
-        leaf_value = self._evaluate_rollout(board, color)
+
+        leaf_value = self._evaluate_rollout(board, color,ow)
         # Update value and visit count of nodes in this traversal.
         node.update_recursive(leaf_value)
 
-    def _evaluate_rollout(self, board, toplay):
+    def _evaluate_rollout(self, board, toplay,ow):
         """
         Use the rollout policy to play until the end of the game, returning +1 if the current
         player wins, -1 if the opponent wins, and 0 if it is a tie.
         """
         end, Winner = board.check_game_end_gomoku()
         while not end:
-            moves = board.get_pattern_moves()
-            if if rmoves != None:
-                if len(rmoves[1]) != 0:
-                    moves = rmoves[1]
-                    move = random.choice(moves)
-            else:
-                moves = board.generate_random_move_gomoku
-            if moves == PASS:
+            end, Winner = board.check_game_end_gomoku()
+            move = GoBoardUtil.generate_random_move_gomoku(board)
+            if move == PASS:
                 return 0
 
 
-            board.play_move_gomoku(board,board.current_player)
-        if winner == self.toplay:
+            board.play_move_gomoku(move,board.current_player)
+        if Winner == ow:
             return 1
         else:
             return 0
 
-    def get_move(
-        self,
-        board,
-        toplay,
-    ):
+    def get_move(self, board, toplay):
         """
         Runs all playouts sequentially and returns the most visited move.
         """
         self.toplay = toplay
         starttime = time.time()
-        self.exploration = 0.3
+        self.exploration = 0.05
         while (time.time() - starttime) <= 55:
             board_copy = board.copy()
             self._playout(board_copy, toplay)
@@ -186,13 +183,13 @@ class MCTS(object):
         moves_ls = [
             (move, node._n_visits) for move, node in self._root._children.items()
         ]
+        respond(moves_ls)
         if not moves_ls:
             return None
         moves_ls = sorted(moves_ls, key=lambda i: i[1], reverse=True)
         move = moves_ls[0]
         if move[0] == PASS:
             return None
-        assert board.is_legal(move[0], toplay)
         return move[0]
 
     def update_with_move(self, last_move):
@@ -207,11 +204,6 @@ class MCTS(object):
         self._root._parent = None
         self.toplay = GoBoardUtil.opponent(self.toplay)
 
-    def point_to_string(self, board_size, point):
-        if point == None or point == PASS:
-            return "Pass"
-        x, y = point_to_coord(point, board_size)
-        return format_point((x, y))
 
     def int_to_color(self, i):
         """convert number representing player color to the appropriate character """

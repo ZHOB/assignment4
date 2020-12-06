@@ -13,7 +13,8 @@ from board_util import GoBoardUtil, BLACK, WHITE, EMPTY, BORDER, PASS, \
 import numpy as np
 import re
 import signal
-import mcts
+from mcts import MCTS
+
 
 class GtpConnection():
 
@@ -330,14 +331,10 @@ class GtpConnection():
             if len(rmoves[1]) != 0:
                 move = rmoves[1][0]
         else:
-            try:
-                signal.alarm(int(self.timelimit))
                 self.sboard = self.board.copy()
-                move = mcts.MCTS.get_move(self.board, color)
+                tree = MCTS()
+                move = tree.get_move(self.board, color)
                 self.board=self.sboard
-                signal.alarm(0)
-            except Exception as e:
-                move=self.go_engine.best_move
         if move == PASS:
             self.respond("pass")
             return

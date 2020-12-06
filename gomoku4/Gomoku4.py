@@ -5,7 +5,7 @@
 from gtp_connection import GtpConnection
 from board_util import GoBoardUtil, EMPTY
 from simple_board import SimpleGoBoard
-
+from mcts import MCTS
 import random
 import numpy as np
 
@@ -45,6 +45,7 @@ class GomokuSimulationPlayer(object):
         self.name="Gomoku3"
         self.version = 3.0
         self.best_move=None
+        self.MCTS= MCTS()
 
     def set_playout_policy(self, playout_policy='random'):
         assert(playout_policy in ['random', 'rule_based'])
@@ -60,7 +61,7 @@ class GomokuSimulationPlayer(object):
             return self._random_moves(board, color_to_play)
         movetype_id, moves=ret
         return moves
-    
+
     def _do_playout(self, board, color_to_play):
         res=game_result(board)
         simulation_moves=[]

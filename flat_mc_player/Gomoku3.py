@@ -5,10 +5,13 @@
 from gtp_connection import GtpConnection
 from board_util import GoBoardUtil, EMPTY
 from simple_board import SimpleGoBoard
-
+from sys import stdin, stdout, stderr
 import random
 import numpy as np
-
+def respond(response=''):
+    """ Send response to stdout """
+    stdout.write('= {}\n\n'.format(response))
+    stdout.flush()
 def undo(board,move):
     board.board[move]=EMPTY
     board.current_player=GoBoardUtil.opponent(board.current_player)
@@ -31,7 +34,7 @@ class GomokuSimulationPlayer(object):
     """
     For each move do `n_simualtions_per_move` playouts,
     then select the one with best win-rate.
-    playout could be either random or rule_based (i.e., uses pre-defined patterns) 
+    playout could be either random or rule_based (i.e., uses pre-defined patterns)
     """
     def __init__(self, n_simualtions_per_move=10, playout_policy='random', board_size=7):
         assert(playout_policy in ['random', 'rule_based'])
@@ -45,14 +48,15 @@ class GomokuSimulationPlayer(object):
         self.name="Gomoku3"
         self.version = 3.0
         self.best_move=None
-    
+        self.A = 0
+
     def set_playout_policy(self, playout_policy='random'):
         assert(playout_policy in ['random', 'rule_based'])
         self.playout_policy=playout_policy
 
     def _random_moves(self, board, color_to_play):
         return GoBoardUtil.generate_legal_moves_gomoku(board)
-    
+
     def policy_moves(self, board, color_to_play):
         if(self.playout_policy=='random'):
             return "Random", self._random_moves(board, color_to_play)
@@ -64,7 +68,7 @@ class GomokuSimulationPlayer(object):
                 return "Random", self._random_moves(board, color_to_play)
             movetype_id, moves=ret
             return self.pattern_list[movetype_id], moves
-    
+
     def _do_playout(self, board, color_to_play):
         res=game_result(board)
         simulation_moves=[]
@@ -77,11 +81,17 @@ class GomokuSimulationPlayer(object):
         for m in simulation_moves[::-1]:
             undo(board, m)
         if res == color_to_play:
+            self.A += 1
+            respond(self.A)
             return 1.0
         elif res == 'draw':
+            self.A += 1
+            respond(self.A)
             return 0.0
         else:
             assert(res == GoBoardUtil.opponent(color_to_play))
+            self.A += 1
+            respond(self.A)
             return -1.0
 
     def get_move(self, board, color_to_play):
