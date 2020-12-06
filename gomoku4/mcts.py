@@ -108,7 +108,6 @@ class MCTS(object):
         self._root = TreeNode(None)
         self.toplay = None
         self.exploration = 0.3
-        self.A = 0
     def _playout(self, board, color):
         """
         Run a single playout from the root to the given depth, getting a value at the leaf and
@@ -175,7 +174,7 @@ class MCTS(object):
         """
         self.toplay = toplay
         starttime = time.time()
-        self.exploration = 0.05
+        self.exploration = 0.1
         while (time.time() - starttime) <= 55:
             board_copy = board.copy()
             self._playout(board_copy, toplay)
@@ -183,7 +182,6 @@ class MCTS(object):
         moves_ls = [
             (move, node._n_visits) for move, node in self._root._children.items()
         ]
-        respond(moves_ls)
         if not moves_ls:
             return None
         moves_ls = sorted(moves_ls, key=lambda i: i[1], reverse=True)

@@ -1,8 +1,7 @@
 import pexpect
-
-#player1='random_player/Gomoku2.py'
+player1='gomoku4/Gomoku4.py'
 player2='flat_mc_player/Gomoku3.py'
-player1='gomoku/Gomoku4.py'
+
 
 
 win1=0

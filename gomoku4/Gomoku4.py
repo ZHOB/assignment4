@@ -5,13 +5,9 @@
 from gtp_connection import GtpConnection
 from board_util import GoBoardUtil, EMPTY
 from simple_board import SimpleGoBoard
-from sys import stdin, stdout, stderr
 import random
 import numpy as np
-def respond(response=''):
-    """ Send response to stdout """
-    stdout.write('= {}\n\n'.format(response))
-    stdout.flush()
+
 def undo(board,move):
     board.board[move]=EMPTY
     board.current_player=GoBoardUtil.opponent(board.current_player)
@@ -45,10 +41,9 @@ class GomokuSimulationPlayer(object):
         #NOTE: pattern has preference, later pattern is ignored if an earlier pattern is found
         self.pattern_list=['Win', 'BlockWin', 'OpenFour', 'BlockOpenFour', 'Random']
 
-        self.name="Gomoku3"
+        self.name="Gomoku4"
         self.version = 3.0
         self.best_move=None
-        self.A = 0
 
     def set_playout_policy(self, playout_policy='random'):
         assert(playout_policy in ['random', 'rule_based'])
@@ -58,22 +53,18 @@ class GomokuSimulationPlayer(object):
         return GoBoardUtil.generate_legal_moves_gomoku(board)
 
     def policy_moves(self, board, color_to_play):
-        if(self.playout_policy=='random'):
-            return "Random", self._random_moves(board, color_to_play)
-        else:
-            assert(self.playout_policy=='rule_based')
-            assert(isinstance(board, SimpleGoBoard))
-            ret=board.get_pattern_moves()
-            if ret is None:
-                return "Random", self._random_moves(board, color_to_play)
-            movetype_id, moves=ret
-            return self.pattern_list[movetype_id], moves
+        assert(isinstance(board, SimpleGoBoard))
+        ret=board.get_pattern_moves()
+        if ret is None:
+            return self._random_moves(board, color_to_play)
+        movetype_id, moves=ret
+        return moves
 
     def _do_playout(self, board, color_to_play):
         res=game_result(board)
         simulation_moves=[]
         while(res is None):
-            _ , candidate_moves = self.policy_moves(board, board.current_player)
+            candidate_moves = self.policy_moves(board, board.current_player)
             playout_move=random.choice(candidate_moves)
             play_move(board, playout_move, board.current_player)
             simulation_moves.append(playout_move)
@@ -81,17 +72,11 @@ class GomokuSimulationPlayer(object):
         for m in simulation_moves[::-1]:
             undo(board, m)
         if res == color_to_play:
-            self.A += 1
-            respond(self.A)
             return 1.0
         elif res == 'draw':
-            self.A += 1
-            respond(self.A)
             return 0.0
         else:
             assert(res == GoBoardUtil.opponent(color_to_play))
-            self.A += 1
-            respond(self.A)
             return -1.0
 
     def get_move(self, board, color_to_play):
