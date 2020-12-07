@@ -1,0 +1,55 @@
+Script started on Sun Dec  6 21:20:39 2020
+zihao8@ug12:~/Desktop$ mkdir demo03
+zihao8@ug12:~/Desktop$ mv assignment4.tgz ~/Desktop/demo03
+zihao8@ug12:~/Desktop$ cd demo03
+zihao8@ug12:~/Desktop/demo03$ ls
+assignment4.tgz
+zihao8@ug12:~/Desktop/demo03$ tar -xvzf assignmtn[K[Kent4.tgz
+assignment4/
+assignment4/illidan/
+assignment4/illidan/gtp_connection.py
+assignment4/illidan/Gomoku4.py
+assignment4/illidan/alphabeta.py
+assignment4/illidan/removeSpace.py
+assignment4/illidan/board_util.py
+assignment4/illidan/mcts.py
+assignment4/illidan/simple_board.py
+assignment4/flat_mc_player/
+assignment4/flat_mc_player/game_results.txt
+assignment4/flat_mc_player/board_util.py
+assignment4/flat_mc_player/gtp_connection.py
+assignment4/flat_mc_player/removeSpace.py
+assignment4/flat_mc_player/alphabeta.py
+assignment4/flat_mc_player/Gomoku3.py
+assignment4/flat_mc_player/simple_board.py
+assignment4/README.md
+assignment4/random_player/
+assignment4/random_player/gtp_connection.py
+assignment4/random_player/board_util.py
+assignment4/random_player/simple_board.py
+assignment4/random_player/Gomoku2.py
+assignment4/play.py
+zihao8@ug12:~/Desktop/demo03$ cd assignment4
+zihao8@ug12:~/Desktop/demo03/assignment4$ ls
+README.md  flat_mc_player  illidan  play.py  random_player
+zihao8@ug12:~/Desktop/demo03/assignment4$ python3 play.py
+player1: illidan/Gomoku4.py
+player2: random_player/Gomoku2.py
+Game:  1
+D4
+B6
+E5
+G6
+E3
+D7
+C3
+F1
+B2
+A5
+A1
+player1 wins
+player1 win 1 player2 win 0 draw 0
+zihao8@ug12:~/Desktop/demo03/assignment4$ exit
+exit
+
+Script done on Sun Dec  6 21:28:05 2020
